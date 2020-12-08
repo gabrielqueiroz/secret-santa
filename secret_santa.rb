@@ -5,20 +5,18 @@ class SecretSanta
   attr_accessor :participants, :secret_santa_pairs
 
   def initialize(file_name: 'secret_santa.csv')
-    @secret_santa_pairs = Hash.new
-    @participants = CSV.read("#{file_name}").map do |row|
+    @secret_santa_pairs = {}
+    @participants = CSV.read(file_name).map do |row|
       Person.new(name: row.first, email: row.last)
     end
   end
 
   def shuffle
-    @participants.shuffle.each do |person|
-      giving    = @secret_santa_pairs.key(person) if @participants.count.odd?
-      receiving = @secret_santa_pairs.values
-
-      secret_santa = (@participants - [person, giving] - receiving).sample
-
-      @secret_santa_pairs[person] = secret_santa
+    shuffled_participants = @participants.shuffle
+    shuffled_participants.each_with_index do |_, index|
+      giving    = shuffled_participants[index - 1]
+      receiving = shuffled_participants[index]
+      @secret_santa_pairs[giving] = receiving
     end
 
     @secret_santa_pairs
@@ -36,6 +34,7 @@ class SecretSanta
   end
 
   private
+
   def build_message(giving, receiving)
     "Hey #{giving.name}, you secret santa is #{receiving.name}!"
   end
